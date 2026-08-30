@@ -1,15 +1,18 @@
 import { useState } from 'react'
 import { AppHeader } from '../components/AppHeader'
 import { Button } from '../components/Button'
+import { LanguageSwitch } from '../components/LanguageSwitch'
+import { useLang, T } from '../i18n/LanguageContext'
+import type { MsgKey } from '../i18n/strings'
 
 interface LoginPageProps {
   onSubmit: (phone: string) => Promise<boolean>
   busy: boolean
   error: string
-  devMode?: boolean
 }
 
-export function LoginPage({ onSubmit, busy, error, devMode }: LoginPageProps) {
+export function LoginPage({ onSubmit, busy, error }: LoginPageProps) {
+  const { t } = useLang()
   const [phone, setPhone] = useState('')
 
   const digitsOnly = phone.replace(/\D/g, '')
@@ -17,28 +20,26 @@ export function LoginPage({ onSubmit, busy, error, devMode }: LoginPageProps) {
 
   return (
     <div className="screen">
-      <AppHeader title="AAM Connect" subtitle="Health worker sign-in" />
+      <AppHeader title={t('common.appName')} subtitle={t('login.subtitle')} />
       <div className="screen-body login-body">
+        <LanguageSwitch />
+
         <div className="login-intro">
-          <h1>Sign in as CHO</h1>
-          <p>Enter your registered mobile number. We'll send a one-time code to verify it's you.</p>
+          <h1>{t('login.heading')}</h1>
+          <p>{t('login.body')}</p>
         </div>
 
-        {devMode && (
-          <p className="dev-banner">
-            Preview build — enter any 10-digit number, then use code <strong>123456</strong> on the next screen.
-          </p>
-        )}
+        <T k="login.demoBanner" as="p" className="dev-banner" />
 
         <label className="field">
-          <span className="field-label">Mobile number</span>
+          <span className="field-label">{t('login.mobileLabel')}</span>
           <div className="phone-input">
             <span className="phone-prefix">+91</span>
             <input
               type="tel"
               inputMode="numeric"
               maxLength={10}
-              placeholder="98XXX XX214"
+              placeholder={t('login.mobilePlaceholder')}
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
               autoFocus
@@ -46,20 +47,17 @@ export function LoginPage({ onSubmit, busy, error, devMode }: LoginPageProps) {
           </div>
         </label>
 
-        {error && <p className="field-error">{error}</p>}
+        {error && <p className="field-error">{t(error as MsgKey)}</p>}
 
         <Button
           loading={busy}
           disabled={!canSubmit}
           onClick={() => onSubmit(`+91${digitsOnly}`)}
         >
-          Send OTP
+          {t('login.sendOtp')}
         </Button>
 
-        <p className="login-note">
-          Access is currently limited to <strong>Community Health Officers (CHO)</strong>.
-          ANM and ASHA sign-in is coming soon.
-        </p>
+        <T k="login.choOnlyNote" as="p" className="login-note" />
       </div>
     </div>
   )

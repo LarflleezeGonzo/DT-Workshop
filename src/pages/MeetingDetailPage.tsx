@@ -4,6 +4,8 @@ import { Button } from '../components/Button'
 import { PrivacyNote } from '../components/PrivacyNote'
 import { MEETINGS } from '../data/mock'
 import type { AgendaItem } from '../types'
+import { useLang } from '../i18n/LanguageContext'
+import { initialsOf } from '../i18n/initials'
 
 interface MeetingDetailPageProps {
   meetingId: string
@@ -12,6 +14,7 @@ interface MeetingDetailPageProps {
 }
 
 export function MeetingDetailPage({ meetingId, onBack, onStart }: MeetingDetailPageProps) {
+  const { t } = useLang()
   const meeting = MEETINGS.find((m) => m.id === meetingId)
   const [agenda, setAgenda] = useState<AgendaItem[]>(meeting?.agenda ?? [])
   const [recordMeeting, setRecordMeeting] = useState(false)
@@ -19,8 +22,8 @@ export function MeetingDetailPage({ meetingId, onBack, onStart }: MeetingDetailP
   if (!meeting) {
     return (
       <div className="screen">
-        <AppHeader title="Meeting" onBack={onBack} />
-        <div className="screen-body"><p className="muted">Meeting not found.</p></div>
+        <AppHeader title={t('meeting.headerFallback')} onBack={onBack} />
+        <div className="screen-body"><p className="muted">{t('common.notFound')}</p></div>
       </div>
     )
   }
@@ -31,39 +34,39 @@ export function MeetingDetailPage({ meetingId, onBack, onStart }: MeetingDetailP
   return (
     <div className="screen">
       <AppHeader
-        title={meeting.title}
-        subtitle={`${meeting.date} · ${meeting.time} · ${meeting.location}`}
+        title={t(meeting.title)}
+        subtitle={`${t(meeting.date)} · ${t(meeting.time)} · ${t(meeting.location)}`}
         onBack={onBack}
       />
       <div className="screen-body">
         <div className="card">
-          <div className="section-label" style={{ marginTop: 0 }}>Participants</div>
+          <div className="section-label" style={{ marginTop: 0 }}>{t('meeting.participants')}</div>
           <div className="participant-list">
             {meeting.participants.map((p, i) => (
               <div key={i} className="participant-row">
                 <span className={`avatar-mini ${p.confirmed ? 'confirmed' : ''}`}>
-                  {p.name.split(' ').map((w) => w[0]).join('').slice(0, 2)}
+                  {initialsOf(t(p.name))}
                 </span>
                 <div className="participant-meta">
-                  <span className="participant-name">{p.name}</span>
+                  <span className="participant-name">{t(p.name)}</span>
                   <span className="muted">{p.role}</span>
                 </div>
                 <span className={`chip ${p.confirmed ? 'chip-green' : 'chip-pink'}`}>
-                  {p.confirmed ? 'Confirmed' : 'Pending'}
+                  {p.confirmed ? t('common.confirmed') : t('common.pending')}
                 </span>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="section-label">Suggested agenda</div>
+        <div className="section-label">{t('meeting.suggestedAgenda')}</div>
         <div className="card agenda-card">
           {agenda.map((item) => (
             <button key={item.id} className="agenda-item" onClick={() => toggle(item.id)}>
               <span className={`checkbox ${item.done ? 'checked' : ''}`} aria-hidden="true" />
               <span className={`agenda-label ${item.done ? 'done' : ''}`}>
-                {item.label}
-                {item.source === 'analytics' && <span className="chip chip-purple agenda-src">from analytics</span>}
+                {t(item.label)}
+                {item.source === 'analytics' && <span className="chip chip-purple agenda-src">{t('meeting.fromAnalytics')}</span>}
               </span>
             </button>
           ))}
@@ -83,8 +86,8 @@ export function MeetingDetailPage({ meetingId, onBack, onStart }: MeetingDetailP
               </svg>
             </span>
             <div className="toggle-row-text">
-              <span className="list-row-title">Record &amp; transcribe this meeting</span>
-              <span className="muted">Optional · get a written summary afterwards</span>
+              <span className="list-row-title">{t('meeting.recordToggle')}</span>
+              <span className="muted">{t('meeting.recordToggleSub')}</span>
             </div>
             <span className={`switch ${recordMeeting ? 'on' : ''}`} aria-hidden="true">
               <span className="switch-knob" />
@@ -92,16 +95,14 @@ export function MeetingDetailPage({ meetingId, onBack, onStart }: MeetingDetailP
           </button>
 
           {recordMeeting && (
-            <PrivacyNote tone="inline" title="Only your voice, only for this meeting.">
-              Nothing is sent anywhere else, and you can stop or discard the recording at any
-              point. It's here to save someone from having to write minutes by hand — not to
-              monitor what's said.
+            <PrivacyNote tone="inline" title={t('meeting.privacyTitle')}>
+              {t('meeting.privacyBody')}
             </PrivacyNote>
           )}
         </div>
 
         <Button onClick={() => onStart(meeting.id, recordMeeting)}>
-          {recordMeeting ? 'Start meeting & record' : 'Start meeting & mark attendance'}
+          {recordMeeting ? t('meeting.startRecord') : t('meeting.startAttendance')}
         </Button>
       </div>
     </div>

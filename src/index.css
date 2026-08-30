@@ -40,7 +40,11 @@ html, body, #root {
 body {
   background: var(--bg);
   color: var(--ink);
-  font-family: "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  /* Devanagari faces first — the app defaults to Hindi. These are system
+     fonts already present on Windows/Android/iOS; nothing is fetched. */
+  font-family: "Noto Sans Devanagari", "Nirmala UI", "Kohinoor Devanagari", Mangal,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  line-height: 1.55;
   -webkit-font-smoothing: antialiased;
   overscroll-behavior-y: none;
 }

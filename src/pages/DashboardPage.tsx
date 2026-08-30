@@ -1,12 +1,13 @@
 import type { Profile } from '../types'
 import { Button } from '../components/Button'
-import { MEETINGS, TASKS } from '../data/mock'
+import { MEETINGS, TASKS, LEADERBOARD } from '../data/mock'
+import { useLang } from '../i18n/LanguageContext'
 
 interface DashboardPageProps {
   profile: Profile
   onOpenMeeting: (id: string) => void
   onSchedule: () => void
-  onOpenIncentives: () => void
+  onOpenTeam: () => void
   onGoTasks: () => void
 }
 
@@ -14,20 +15,22 @@ export function DashboardPage({
   profile,
   onOpenMeeting,
   onSchedule,
-  onOpenIncentives,
+  onOpenTeam,
   onGoTasks,
 }: DashboardPageProps) {
+  const { t } = useLang()
   const today = MEETINGS.find((m) => m.status === 'today')
-  const pendingTasks = TASKS.filter((t) => t.status !== 'done').length
+  const pendingTasks = TASKS.filter((task) => task.status !== 'done').length
+  const myTeam = LEADERBOARD.find((row) => row.isYou)
 
   return (
     <div className="screen">
       <header className="app-header dashboard-header">
         <div className="app-header-row">
-          <span className="app-header-title">Namaste, {profile.name.split(' ')[0]}</span>
+          <span className="app-header-title">{t('dash.greeting', { name: t(profile.name).split(' ')[0] })}</span>
         </div>
         <div className="app-header-subtitle">
-          {profile.facility} · {profile.district} district
+          {t('dash.location', { facility: t(profile.facility), district: t(profile.district) })}
         </div>
       </header>
 
@@ -35,51 +38,53 @@ export function DashboardPage({
         <div className="stat-row">
           <button className="stat-tile stat-tile-btn" onClick={onGoTasks}>
             <div className="stat-num">2</div>
-            <div className="stat-lab">Meetings this month</div>
+            <div className="stat-lab">{t('dash.statMeetings')}</div>
           </button>
           <button className="stat-tile stat-tile-btn" onClick={onGoTasks}>
             <div className="stat-num">{pendingTasks}</div>
-            <div className="stat-lab">Pending tasks</div>
+            <div className="stat-lab">{t('dash.statPendingTasks')}</div>
           </button>
           <div className="stat-tile">
             <div className="stat-num">86%</div>
-            <div className="stat-lab">Attendance</div>
+            <div className="stat-lab">{t('dash.statAttendance')}</div>
           </div>
         </div>
 
         {today && (
           <button className="card meeting-card card-btn" onClick={() => onOpenMeeting(today.id)}>
             <div className="card-row">
-              <span className="chip chip-blue">Upcoming</span>
-              <span className="muted">{today.distanceKm} km away</span>
+              <span className="chip chip-blue">{t('dash.upcomingChip')}</span>
+              <span className="muted">{t('dash.distanceAway', { km: today.distanceKm })}</span>
             </div>
-            <div className="card-title">{today.title}</div>
+            <div className="card-title">{t(today.title)}</div>
             <div className="muted">
-              {today.date} · {today.time} · {today.location}
+              {t(today.date)} · {t(today.time)} · {t(today.location)}
             </div>
-            <div className="card-cta">Open meeting ›</div>
+            <div className="card-cta">{t('dash.openMeeting')}</div>
           </button>
         )}
 
         <div className="card">
-          <div className="card-title">Team status</div>
+          <div className="card-title">{t('dash.teamStatus')}</div>
           <div className="card-row" style={{ marginTop: 10, flexWrap: 'wrap', gap: 6, justifyContent: 'flex-start' }}>
-            <span className="chip chip-green">ANM ✓ confirmed</span>
-            <span className="chip chip-pink">2 ASHA pending</span>
+            <span className="chip chip-green">{t('dash.anmConfirmed')}</span>
+            <span className="chip chip-pink">{t('dash.ashaPending', { n: 2 })}</span>
           </div>
         </div>
 
-        <button className="card incentive-teaser card-btn" onClick={onOpenIncentives}>
-          <div className="card-row">
-            <div>
-              <div className="card-title">Sector rank #3</div>
-              <div className="muted">₹1,240 earned this month</div>
+        {myTeam && (
+          <button className="card team-teaser card-btn" onClick={onOpenTeam}>
+            <div className="card-row">
+              <div>
+                <div className="card-title">{t('dash.yourTeamRank', { rank: myTeam.rank })}</div>
+                <div className="muted">{t('dash.teamTargetPct', { pct: myTeam.score })}</div>
+              </div>
+              <span className="card-cta">{t('common.view')}</span>
             </div>
-            <span className="card-cta">View ›</span>
-          </div>
-        </button>
+          </button>
+        )}
 
-        <Button onClick={onSchedule}>+ Schedule AAM Meeting</Button>
+        <Button onClick={onSchedule}>{t('dash.scheduleBtn')}</Button>
       </div>
     </div>
   )
