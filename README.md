@@ -1,6 +1,6 @@
 # DT Workshop
 
-React + TypeScript + Vite web app, wired to Supabase, packaged as an Android APK via Capacitor.
+React + TypeScript + Vite web app, wired to Supabase.
 
 ## Setup
 
@@ -8,12 +8,11 @@ React + TypeScript + Vite web app, wired to Supabase, packaged as an Android APK
 2. Copy `.env.example` to `.env.local` and fill in your Supabase project URL and anon key.
 3. `npm run dev` to run the web app locally.
 
-## Building the Android APK
+## Building for production
 
 ```bash
 npm run build
-npx cap sync android
-npx cap open android
+npm run preview
 ```
 
-Then build/run the APK from Android Studio.
+The static site is output to `dist/`.
