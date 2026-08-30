@@ -1,131 +1,80 @@
-import { useEffect, useState, useCallback } from 'react'
-import type { Session } from '@supabase/supabase-js'
-import { supabase } from '../lib/supabase'
+import { useCallback, useState } from 'react'
 import type { Profile } from '../types'
+
+// AAM Connect runs entirely as a self-contained demo — there is no backend.
+// Sign-in accepts any 10-digit number, then the fixed code below; both are
+// shown on screen (LoginPage / OtpPage) so a demo never needs a secret.
+// A real phone-OTP backend (e.g. Supabase) can replace this hook later
+// without changing its public shape — see supabase/migrations/0001_profiles.sql
+// for the schema this was originally built against.
 
 export type AuthStage = 'loading' | 'signed_out' | 'otp_sent' | 'restricted' | 'signed_in'
 
-const DEV_LOGIN = import.meta.env.VITE_DEV_LOGIN === 'true'
-const DEV_OTP = '123456'
+export const DEMO_OTP = '123456'
+const STORAGE_KEY = 'aam.signedIn'
 
-const DEV_PROFILE: Profile = {
-  id: 'dev-cho-ashok-kumar',
+const DEMO_PROFILE: Profile = {
+  id: 'demo-cho-ashok-kumar',
   phone: '',
-  name: 'Ashok Kumar',
+  name: 'mock.person.ashok',
   role: 'CHO',
-  facility: 'Devali',
-  district: 'Salumber',
+  facility: 'mock.place.devali',
+  district: 'mock.place.salumber',
+}
+
+function readStoredSignIn(): boolean {
+  try {
+    return localStorage.getItem(STORAGE_KEY) === 'true'
+  } catch {
+    return false
+  }
+}
+
+function writeStoredSignIn(signedIn: boolean) {
+  try {
+    if (signedIn) localStorage.setItem(STORAGE_KEY, 'true')
+    else localStorage.removeItem(STORAGE_KEY)
+  } catch {
+    // best-effort persistence only
+  }
 }
 
 export function useAuth() {
-  const [session, setSession] = useState<Session | null>(null)
-  const [profile, setProfile] = useState<Profile | null>(null)
-  const [stage, setStage] = useState<AuthStage>('loading')
+  const [profile, setProfile] = useState<Profile | null>(() => (readStoredSignIn() ? DEMO_PROFILE : null))
+  const [stage, setStage] = useState<AuthStage>(() => (readStoredSignIn() ? 'signed_in' : 'signed_out'))
   const [pendingPhone, setPendingPhone] = useState('')
   const [error, setError] = useState('')
-  const [busy, setBusy] = useState(false)
-
-  const loadProfile = useCallback(async (userId: string) => {
-    const { data, error: profileError } = await supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', userId)
-      .maybeSingle()
-
-    if (profileError || !data) {
-      setStage('restricted')
-      return
-    }
-    if (data.role !== 'CHO') {
-      setStage('restricted')
-      return
-    }
-    setProfile(data as Profile)
-    setStage('signed_in')
-  }, [])
-
-  useEffect(() => {
-    if (DEV_LOGIN) {
-      setStage('signed_out')
-      return
-    }
-
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session)
-      if (data.session) {
-        loadProfile(data.session.user.id)
-      } else {
-        setStage('signed_out')
-      }
-    })
-
-    const { data: listener } = supabase.auth.onAuthStateChange((_event, newSession) => {
-      setSession(newSession)
-      if (newSession) {
-        loadProfile(newSession.user.id)
-      } else {
-        setStage('signed_out')
-      }
-    })
-
-    return () => listener.subscription.unsubscribe()
-  }, [loadProfile])
+  const [busy] = useState(false)
 
   const sendOtp = useCallback(async (phone: string) => {
     setError('')
     setPendingPhone(phone)
-
-    if (DEV_LOGIN) {
-      setStage('otp_sent')
-      return true
-    }
-
-    setBusy(true)
-    const { error: otpError } = await supabase.auth.signInWithOtp({ phone })
-    setBusy(false)
-    if (otpError) {
-      setError(otpError.message)
-      return false
-    }
     setStage('otp_sent')
     return true
   }, [])
 
-  const verifyOtp = useCallback(async (token: string) => {
-    setError('')
-
-    if (DEV_LOGIN) {
-      if (token !== DEV_OTP) {
-        setError(`Invalid code. Use ${DEV_OTP} for this preview build.`)
+  const verifyOtp = useCallback(
+    async (token: string) => {
+      setError('')
+      if (token !== DEMO_OTP) {
+        setError('otp.invalidCode')
         return false
       }
-      setProfile({ ...DEV_PROFILE, phone: pendingPhone })
+      const signedInProfile: Profile = { ...DEMO_PROFILE, phone: pendingPhone }
+      setProfile(signedInProfile)
+      writeStoredSignIn(true)
       setStage('signed_in')
       return true
-    }
-
-    setBusy(true)
-    const { error: verifyError } = await supabase.auth.verifyOtp({
-      phone: pendingPhone,
-      token,
-      type: 'sms',
-    })
-    setBusy(false)
-    if (verifyError) {
-      setError(verifyError.message)
-      return false
-    }
-    return true
-  }, [pendingPhone])
+    },
+    [pendingPhone],
+  )
 
   const signOut = useCallback(async () => {
-    if (!DEV_LOGIN) {
-      await supabase.auth.signOut()
-    }
+    writeStoredSignIn(false)
     setProfile(null)
     setPendingPhone('')
     setStage('signed_out')
   }, [])
 
-  return { session, profile, stage, pendingPhone, error, busy, sendOtp, verifyOtp, signOut, devMode: DEV_LOGIN }
+  return { profile, stage, pendingPhone, error, busy, sendOtp, verifyOtp, signOut }
 }

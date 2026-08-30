@@ -1,3 +1,7 @@
+-- NOT currently wired to the app. AAM Connect runs as a self-contained demo
+-- (see src/hooks/useAuth.ts) with no backend and no environment variables.
+-- This schema is kept as a dormant record for a future real auth backend.
+
 create table if not exists public.profiles (
   id uuid primary key references auth.users (id) on delete cascade,
   phone text unique not null,

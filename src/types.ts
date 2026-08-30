@@ -1,32 +1,34 @@
+import type { MsgKey } from './i18n/strings'
+
 export type Role = 'CHO' | 'ANM' | 'ASHA'
 
 export interface Profile {
   id: string
   phone: string
-  name: string
+  name: MsgKey
   role: Role
-  facility: string
-  district: string
+  facility: MsgKey
+  district: MsgKey
 }
 
 export type Priority = 'high' | 'medium' | 'routine'
 
 export interface Meeting {
   id: string
-  title: string
-  date: string
-  time: string
-  location: string
+  title: MsgKey
+  date: MsgKey
+  time: MsgKey
+  location: MsgKey
   distanceKm: number
   priority: Priority
   status: 'upcoming' | 'today' | 'done'
-  participants: { role: Role; name: string; confirmed: boolean }[]
+  participants: { role: Role; name: MsgKey; confirmed: boolean }[]
   agenda: AgendaItem[]
 }
 
 export interface AgendaItem {
   id: string
-  label: string
+  label: MsgKey
   done: boolean
   source?: 'analytics'
 }
@@ -35,9 +37,8 @@ export type TaskStatus = 'todo' | 'doing' | 'done'
 
 export interface Task {
   id: string
-  title: string
-  assignee: string
-  assigneeInitials: string
+  title: MsgKey
+  assignee: MsgKey
   status: TaskStatus
   progress?: number
   priority: Priority
@@ -45,7 +46,7 @@ export interface Task {
 
 export interface LeaderRow {
   rank: number
-  sector: string
+  team: MsgKey
   initials: string
   score: number
   isYou?: boolean

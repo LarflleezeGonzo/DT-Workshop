@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { AppHeader } from '../components/AppHeader'
 import { Button } from '../components/Button'
+import { useLang, T } from '../i18n/LanguageContext'
+import type { MsgKey } from '../i18n/strings'
+import { DEMO_OTP } from '../hooks/useAuth'
 
 interface OtpPageProps {
   phone: string
@@ -8,27 +11,28 @@ interface OtpPageProps {
   onBack: () => void
   busy: boolean
   error: string
-  devMode?: boolean
 }
 
-export function OtpPage({ phone, onVerify, onBack, busy, error, devMode }: OtpPageProps) {
+export function OtpPage({ phone, onVerify, onBack, busy, error }: OtpPageProps) {
+  const { t } = useLang()
   const [token, setToken] = useState('')
 
   return (
     <div className="screen">
-      <AppHeader title="Verify OTP" subtitle={`Code sent to ${phone}`} onBack={onBack} />
+      <AppHeader title={t('otp.title')} subtitle={t('otp.subtitle', { phone })} onBack={onBack} />
       <div className="screen-body login-body">
         <div className="login-intro">
-          <h1>Enter the 6-digit code</h1>
-          <p>Didn't get it? Check your SMS inbox — codes may take a minute to arrive.</p>
+          <h1>{t('otp.heading')}</h1>
+          <p>{t('otp.body')}</p>
         </div>
 
-        {devMode && (
-          <p className="dev-banner">Preview build — use code <strong>123456</strong>.</p>
-        )}
+        <T k="otp.demoBanner" as="p" className="dev-banner" />
+        <button className="link-inline" onClick={() => setToken(DEMO_OTP)}>
+          {t('otp.autofill')}
+        </button>
 
         <label className="field">
-          <span className="field-label">One-time password</span>
+          <span className="field-label">{t('otp.label')}</span>
           <input
             className="otp-input"
             type="text"
@@ -41,10 +45,10 @@ export function OtpPage({ phone, onVerify, onBack, busy, error, devMode }: OtpPa
           />
         </label>
 
-        {error && <p className="field-error">{error}</p>}
+        {error && <p className="field-error">{t(error as MsgKey)}</p>}
 
         <Button loading={busy} disabled={token.length !== 6} onClick={() => onVerify(token)}>
-          Verify &amp; Continue
+          {t('otp.verify')}
         </Button>
       </div>
     </div>

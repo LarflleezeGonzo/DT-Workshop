@@ -1,4 +1,6 @@
 import type { ReactNode } from 'react'
+import { useLang } from '../i18n/LanguageContext'
+import type { MsgKey } from '../i18n/strings'
 
 export type Tab = 'home' | 'agenda' | 'tasks' | 'profile'
 
@@ -14,14 +16,15 @@ const ICONS: Record<Tab, ReactNode> = {
   profile: <><circle cx="12" cy="8" r="3.4" stroke="currentColor" strokeWidth="1.8" /><path d="M5 20c0-3.9 3.1-6 7-6s7 2.1 7 6" stroke="currentColor" strokeWidth="1.8" /></>,
 }
 
-const LABELS: Record<Tab, string> = {
-  home: 'Home',
-  agenda: 'Agenda',
-  tasks: 'Tasks',
-  profile: 'Profile',
+const LABEL_KEYS: Record<Tab, MsgKey> = {
+  home: 'nav.home',
+  agenda: 'nav.agenda',
+  tasks: 'nav.tasks',
+  profile: 'nav.profile',
 }
 
 export function BottomNav({ active, onChange }: BottomNavProps) {
+  const { t } = useLang()
   const tabs: Tab[] = ['home', 'agenda', 'tasks', 'profile']
   return (
     <nav className="bottom-nav">
@@ -33,7 +36,7 @@ export function BottomNav({ active, onChange }: BottomNavProps) {
           aria-current={active === tab ? 'page' : undefined}
         >
           <svg viewBox="0 0 24 24" fill="none">{ICONS[tab]}</svg>
-          {LABELS[tab]}
+          {t(LABEL_KEYS[tab])}
         </button>
       ))}
     </nav>

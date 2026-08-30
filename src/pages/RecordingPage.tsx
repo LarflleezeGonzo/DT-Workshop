@@ -3,6 +3,10 @@ import { AppHeader } from '../components/AppHeader'
 import { Button } from '../components/Button'
 import { PrivacyNote } from '../components/PrivacyNote'
 import { MEETINGS } from '../data/mock'
+import { useLang } from '../i18n/LanguageContext'
+import type { MsgKey } from '../i18n/strings'
+import type { Role } from '../types'
+import { initialsOf } from '../i18n/initials'
 
 interface RecordingPageProps {
   meetingId: string
@@ -10,17 +14,18 @@ interface RecordingPageProps {
   onFinish: (meetingId: string) => void
 }
 
-const TRANSCRIPT: { speaker: string; role: string; text: string }[] = [
-  { speaker: 'Ashok Kumar', role: 'CHO', text: "Let's start with last month's follow-ups — where are we on the referral cases?" },
-  { speaker: 'Sunita Devi', role: 'ANM', text: 'Both are closed. The child in Kheda village completed treatment last week.' },
-  { speaker: 'Ashok Kumar', role: 'CHO', text: 'Good. Radha, how did the immunisation drive go in your area?' },
-  { speaker: 'Radha', role: 'ASHA', text: 'We covered 18 of 20 children. Two families were travelling, I have their numbers.' },
-  { speaker: 'Ashok Kumar', role: 'CHO', text: "I'll note that as a follow-up task. Now, NCD screening — are we on track for the target?" },
-  { speaker: 'Kavita', role: 'ASHA', text: "We've surveyed 12 of 30 households so far. Need two more days." },
-  { speaker: 'Ashok Kumar', role: 'CHO', text: 'Also flagging — ORS stock has come up three times now, we need to raise it with the block.' },
+const TRANSCRIPT: { speaker: MsgKey; role: Role; text: MsgKey }[] = [
+  { speaker: 'mock.person.ashok', role: 'CHO', text: 'rec.t1' },
+  { speaker: 'mock.person.sunita', role: 'ANM', text: 'rec.t2' },
+  { speaker: 'mock.person.ashok', role: 'CHO', text: 'rec.t3' },
+  { speaker: 'mock.person.radha', role: 'ASHA', text: 'rec.t4' },
+  { speaker: 'mock.person.ashok', role: 'CHO', text: 'rec.t5' },
+  { speaker: 'mock.person.kavita', role: 'ASHA', text: 'rec.t6' },
+  { speaker: 'mock.person.ashok', role: 'CHO', text: 'rec.t7' },
 ]
 
 export function RecordingPage({ meetingId, onBack, onFinish }: RecordingPageProps) {
+  const { t } = useLang()
   const meeting = MEETINGS.find((m) => m.id === meetingId)
   const [seconds, setSeconds] = useState(0)
   const [paused, setPaused] = useState(false)
@@ -35,8 +40,8 @@ export function RecordingPage({ meetingId, onBack, onFinish }: RecordingPageProp
 
   useEffect(() => {
     if (paused || lineCount >= TRANSCRIPT.length) return
-    const t = setTimeout(() => setLineCount((n) => Math.min(n + 1, TRANSCRIPT.length)), 2200)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setLineCount((n) => Math.min(n + 1, TRANSCRIPT.length)), 2200)
+    return () => clearTimeout(timer)
   }, [paused, lineCount])
 
   useEffect(() => {
@@ -46,8 +51,8 @@ export function RecordingPage({ meetingId, onBack, onFinish }: RecordingPageProp
   if (!meeting) {
     return (
       <div className="screen">
-        <AppHeader title="Recording" onBack={onBack} />
-        <div className="screen-body"><p className="muted">Meeting not found.</p></div>
+        <AppHeader title={t('rec.headerFallback')} onBack={onBack} />
+        <div className="screen-body"><p className="muted">{t('common.notFound')}</p></div>
       </div>
     )
   }
@@ -57,11 +62,11 @@ export function RecordingPage({ meetingId, onBack, onFinish }: RecordingPageProp
 
   return (
     <div className="screen">
-      <AppHeader title={meeting.title} subtitle="Recording & transcribing" onBack={onBack} />
+      <AppHeader title={t(meeting.title)} subtitle={t('rec.subtitle')} onBack={onBack} />
 
       <div className="rec-status-bar">
         <span className={`rec-dot ${paused ? 'paused' : ''}`} aria-hidden="true" />
-        <span>{paused ? 'Paused' : 'Recording'}</span>
+        <span>{paused ? t('rec.paused') : t('rec.recording')}</span>
         <span className="rec-timer">{mm}:{ss}</span>
         <span className="waveform" aria-hidden="true">
           {Array.from({ length: 14 }).map((_, i) => (
@@ -71,21 +76,18 @@ export function RecordingPage({ meetingId, onBack, onFinish }: RecordingPageProp
       </div>
 
       <div className="screen-body rec-body">
-        <PrivacyNote tone="inline">
-          This transcript is auto-generated from voice only — no video, no background listening.
-          It's visible to this meeting's team once saved, and you can discard it any time before then.
-        </PrivacyNote>
+        <PrivacyNote tone="inline">{t('rec.privacyBody')}</PrivacyNote>
 
-        <div className="section-label">Live transcript</div>
+        <div className="section-label">{t('rec.liveTranscript')}</div>
         <div className="transcript-box" ref={bodyRef}>
           {TRANSCRIPT.slice(0, lineCount).map((line, i) => (
             <div key={i} className="transcript-line">
               <span className={`avatar-mini ${line.role === 'CHO' ? 'confirmed' : ''}`}>
-                {line.speaker.split(' ').map((w) => w[0]).join('').slice(0, 2)}
+                {initialsOf(t(line.speaker))}
               </span>
               <div>
-                <div className="transcript-speaker">{line.speaker} <span className="muted">· {line.role}</span></div>
-                <div className="transcript-text">{line.text}</div>
+                <div className="transcript-speaker">{t(line.speaker)} <span className="muted">· {line.role}</span></div>
+                <div className="transcript-text">{t(line.text)}</div>
               </div>
             </div>
           ))}
@@ -96,11 +98,11 @@ export function RecordingPage({ meetingId, onBack, onFinish }: RecordingPageProp
 
         <div className="rec-actions">
           <Button variant="outline" onClick={() => setPaused((p) => !p)}>
-            {paused ? '▸ Resume' : '‖ Pause'}
+            {paused ? t('rec.resume') : t('rec.pause')}
           </Button>
-          <Button onClick={() => onFinish(meeting.id)}>Stop &amp; save transcript</Button>
+          <Button onClick={() => onFinish(meeting.id)}>{t('rec.stopSave')}</Button>
         </div>
-        <button className="link-inline center-note" onClick={onBack}>Discard recording</button>
+        <button className="link-inline center-note" onClick={onBack}>{t('rec.discard')}</button>
       </div>
     </div>
   )

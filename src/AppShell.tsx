@@ -7,10 +7,11 @@ import { MeetingDetailPage } from './pages/MeetingDetailPage'
 import { RecordingPage } from './pages/RecordingPage'
 import { AttendancePage } from './pages/AttendancePage'
 import { TasksPage } from './pages/TasksPage'
-import { IncentivesPage } from './pages/IncentivesPage'
+import { TeamPerformancePage } from './pages/TeamPerformancePage'
 import { ProfilePage } from './pages/ProfilePage'
 import { PrivacyCenterPage } from './pages/PrivacyCenterPage'
 import { ScheduleMeetingPage } from './pages/ScheduleMeetingPage'
+import { useLang } from './i18n/LanguageContext'
 
 interface AppShellProps {
   profile: Profile
@@ -21,24 +22,25 @@ type Screen =
   | { name: 'meeting'; meetingId: string }
   | { name: 'recording'; meetingId: string }
   | { name: 'attendance'; meetingId: string }
-  | { name: 'incentives' }
+  | { name: 'team' }
   | { name: 'privacy' }
   | { name: 'schedule' }
 
 export function AppShell({ profile, onSignOut }: AppShellProps) {
+  const { t } = useLang()
   const [tab, setTab] = useState<Tab>('home')
   const [stack, setStack] = useState<Screen[]>([])
   const [toast, setToast] = useState('')
 
   useEffect(() => {
     if (!toast) return
-    const t = setTimeout(() => setToast(''), 2600)
-    return () => clearTimeout(t)
+    const timer = setTimeout(() => setToast(''), 2600)
+    return () => clearTimeout(timer)
   }, [toast])
 
   const push = (screen: Screen) => setStack((s) => [...s, screen])
   const pop = () => setStack((s) => s.slice(0, -1))
-  const resetTo = (t: Tab) => { setStack([]); setTab(t) }
+  const resetTo = (nextTab: Tab) => { setStack([]); setTab(nextTab) }
 
   const top = stack[stack.length - 1]
 
@@ -50,7 +52,7 @@ export function AppShell({ profile, onSignOut }: AppShellProps) {
             profile={profile}
             onOpenMeeting={(id) => push({ name: 'meeting', meetingId: id })}
             onSchedule={() => push({ name: 'schedule' })}
-            onOpenIncentives={() => push({ name: 'incentives' })}
+            onOpenTeam={() => push({ name: 'team' })}
             onGoTasks={() => setTab('tasks')}
           />
         )
@@ -101,18 +103,18 @@ export function AppShell({ profile, onSignOut }: AppShellProps) {
             meetingId={top.meetingId}
             onBack={pop}
             onOpenPrivacy={() => push({ name: 'privacy' })}
-            onDone={() => { setToast('Attendance saved with your team.'); resetTo('home') }}
+            onDone={() => { setToast(t('toast.attendanceSaved')); resetTo('home') }}
           />
         )
-      case 'incentives':
-        return <IncentivesPage onBack={pop} />
+      case 'team':
+        return <TeamPerformancePage onBack={pop} />
       case 'privacy':
         return <PrivacyCenterPage onBack={pop} />
       case 'schedule':
         return (
           <ScheduleMeetingPage
             onBack={pop}
-            onScheduled={() => { setToast('Meeting scheduled · reminders sent.'); resetTo('agenda') }}
+            onScheduled={() => { setToast(t('toast.meetingScheduled')); resetTo('agenda') }}
           />
         )
     }

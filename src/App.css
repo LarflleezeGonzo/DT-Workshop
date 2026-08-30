@@ -279,7 +279,7 @@
 .stat-tile-btn:focus-visible { outline: 2px solid var(--primary); outline-offset: 2px; }
 
 .card-cta { color: var(--primary); font-size: 12.5px; font-weight: 700; margin-top: 8px; }
-.incentive-teaser { border-left: 4px solid var(--primary); }
+.team-teaser { border-left: 4px solid var(--primary); }
 
 .chip-purple { background: var(--chip-purple-bg); color: var(--chip-purple-ink); }
 
@@ -420,6 +420,8 @@
   padding: 8px 4px; border-radius: 7px;
 }
 .seg.active { background: var(--surface); color: var(--primary); box-shadow: 0 1px 3px rgba(0,0,0,0.08); }
+.lang-switch { margin-bottom: 4px; }
+.profile-lang-switch { margin: -6px 0 2px; }
 
 .task-col { display: flex; flex-direction: column; gap: 8px; }
 .task-card { display: flex; flex-direction: column; gap: 10px; }
@@ -437,7 +439,7 @@
 .progress-track { height: 7px; border-radius: 5px; background: var(--border-soft); overflow: hidden; }
 .progress-fill { height: 100%; background: var(--accent); border-radius: 5px; }
 
-/* ============ Incentives ============ */
+/* ============ Team performance ============ */
 .leaderboard { display: flex; flex-direction: column; gap: 2px; padding: 6px; }
 .leader-row {
   display: flex; align-items: center; gap: 10px; padding: 9px 8px; border-radius: 8px;

@@ -1,3 +1,5 @@
+import { useLang } from '../i18n/LanguageContext'
+
 interface AppHeaderProps {
   title: string
   subtitle?: string
@@ -5,11 +7,12 @@ interface AppHeaderProps {
 }
 
 export function AppHeader({ title, subtitle, onBack }: AppHeaderProps) {
+  const { t } = useLang()
   return (
     <header className="app-header">
       <div className="app-header-row">
         {onBack && (
-          <button className="back-btn" onClick={onBack} aria-label="Go back">
+          <button className="back-btn" onClick={onBack} aria-label={t('common.goBack')}>
             ‹
           </button>
         )}
